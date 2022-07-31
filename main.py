@@ -76,6 +76,7 @@ def main(w):
       if verbose:
         print(f'Updating {page.title}...')
       contents = page.get_wiki_text()
+      unchanged = True
 
       lines = contents.split('\n')
       for line in lines:
@@ -109,15 +110,19 @@ def main(w):
           date = today.strftime('%Y-%m-%d')
           contents += f'\n=== [[{date} {lat} {long}]] ===\n'
           contents += f'[https://maps.google.com/?q={lat}.{latitude},{long}.{longitude} Centicule {centicule}]\n'
+          unchanged = False
 
           if verbose:
             print(f'Updating {page.title} with a new geohash for {date}')
 
       # End 'for line in lines'
-      if not page.edit(contents, bot=True, summary='Automatic update via https://github.com/jbzdarkid/geohashing'):
+      if unchanged:
+        print(f'No relevant changes for {page.title}')
+      elif page.edit(contents, bot=True, summary='Automatic update via https://github.com/jbzdarkid/geohashing'):
+        if verbose:
+          print(f'Updated {page.title}')
+      else:
         failures.append(page.title)
-      elif verbose:
-        print(f'Updated {page.title}')
     except:
       if verbose:
         print(f'Failed to update {page.title}')
