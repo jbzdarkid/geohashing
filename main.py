@@ -47,8 +47,9 @@ def get_geohash(day):
 
 
 def main(w):
-  #if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
-  #  exit(1)
+  if 'WIKI_USERNAME' in os.environ:
+    if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
+      exit(1)
 
   # If other people are interested, I can fetch these pages from a category.
   page_titles = [
