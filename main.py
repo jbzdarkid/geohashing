@@ -4,24 +4,38 @@ Page = import_module('TFWiki-scripts.wikitools.page').Page
 
 import datetime
 import os
+import re
 verbose = False
 
+FIND_YAHOO_TABLE = re.compile('<table[^>]*?data-test="historical-prices">(.*?)</table>')
+FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
+FIND_TABLE_CELLS = re.compile('<span>([^>]*?)</span>')
 
 def get_geohash(day):
-  date = day.strftime('%Y-%m-%d')
-
   import requests
-  r = requests.get('https://finance.yahoo.com/quote/%5EDJI?p=^DJI') # TODO: Day
-  i = r.text.find('data-test="OPEN-value">') + 23
-  dow_jones = r.text[i:r.text.find('</td>', i)].replace(',', '')
+  range_start = int((day - datetime.timedelta(days=7)).timestamp()) # One week ago
+  range_end = int(day.timestamp())
+  r = requests.get(f'https://finance.yahoo.com/quote/%5EDJI/history?period1={range_start}&period2={range_end}', headers={'User-Agent': 'https://github.com/jbzdarkid/geohashing'})
+
+  # Parse out the data. https://stackoverflow.com/a/1732454
+  table = FIND_YAHOO_TABLE.search(r.text)[1]
+  row = FIND_TABLE_ROWS.findall(table)[1] # The 0th row is the table headers.
+  cells = FIND_TABLE_CELLS.findall(row)
+
+  # At time of writing (2022-07-30) the rows are as follows:
+  # Date, Open, High, Low, Close, Adjusted Close, Volume
+  # Fortunately, we only care about the first two, so hopefully Yahoo doesn't mess with this too badly.
+  dow_date = datetime.datetime.strptime(cells[0], '%b %d, %Y') # Unfortunately Yahoo uses the USA date standard: Dec 21, 2012
+  dow_jones_open = cells[1].replace(',', '') # And they also use the USA numerical separator: ,
+
   if verbose:
-    print(f'The DOW for today was {dow_jones}')
+    print(f'The DOW for {dow_date} opened at {dow_jones_open}')
 
   import hashlib
-  print(f'{date}-{dow_jones}')
-  hash = hashlib.md5(f'{date}-{dow_jones}'.encode('utf-8')).hexdigest()
+  date = day.strftime('%Y-%m-%d')
+  hash = hashlib.md5(f'{date}-{dow_jones_open}'.encode('utf-8')).hexdigest()
   if verbose:
-    print(f'Raw hash: {hash}')
+    print(f'Raw hash for {day}: {hash}')
 
   latitude = float.fromhex(f'0.{hash[:16]}')
   longitude = float.fromhex(f'0.{hash[16:]}')
@@ -33,8 +47,8 @@ def get_geohash(day):
 
 
 def main(w):
-  if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
-    exit(1)
+  #if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
+  #  exit(1)
 
   # If other people are interested, I can fetch these pages from a category.
   page_titles = [
