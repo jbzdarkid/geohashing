@@ -11,7 +11,11 @@ FIND_YAHOO_TABLE = re.compile('<table[^>]*?data-test="historical-prices">(.*?)</
 FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
 FIND_TABLE_CELLS = re.compile('<span>([^>]*?)</span>')
 
-def get_geohash(day):
+dow_cache = {}
+def get_dow_jones(day):
+  if day.strftime('%Y-%m-%d') in dow_cache:
+    return dow_cache[day.strftime('%Y-%m-%d')]
+
   import requests
   range_start = int((day - datetime.timedelta(days=7)).timestamp()) # One week ago
   range_end = int(day.timestamp())
@@ -27,12 +31,18 @@ def get_geohash(day):
   # Fortunately, we only care about the first two, so hopefully Yahoo doesn't mess with this too badly.
   dow_date = datetime.datetime.strptime(cells[0], '%b %d, %Y') # Unfortunately Yahoo uses the USA date standard: Dec 21, 2012
   dow_jones_open = cells[1].replace(',', '') # And they also use the USA numerical separator: ,
-
   if verbose:
     print(f'The DOW for {dow_date} opened at {dow_jones_open}')
 
-  import hashlib
+  dow_cache[day.strftime('%Y-%m-%d')] = dow_jones_open
+  return dow_jones_open
+
+
+def get_geohash(day):
   date = day.strftime('%Y-%m-%d')
+  dow_jones_open = get_dow_jones(day)
+
+  import hashlib
   hash = hashlib.md5(f'{date}-{dow_jones_open}'.encode('utf-8')).hexdigest()
   if verbose:
     print(f'Raw hash for {day}: {hash}')
@@ -51,52 +61,66 @@ def main(w):
     if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
       exit(1)
 
-  # If other people are interested, I can fetch these pages from a category.
-  page_titles = [
-    'User:Darkid/Potential_expeditions',
-  ]
+  failures = []
 
-  for page_title in page_titles:
-    page = Page(w, page_title)
-    contents = page.get_wiki_text()
+  for page in w.get_all_category_pages('Category:Tracked by DarkBOT', namespaces=['User']):
+    try:
+      if verbose:
+        print(f'Updating {page.title}...')
+      contents = page.get_wiki_text()
 
-    lines = contents.split('\n')
-    for line in lines:
-      if line.count('|') < 5:
-        continue
-      parts = line.split('|')
-      lat = parts[1].strip()
-      long = parts[3].strip()
-      cents = parts[5].strip()
+      lines = contents.split('\n')
+      for line in lines:
+        if line.count('|') < 5:
+          continue
+        parts = line.split('|')
+        lat = parts[1].strip()
+        long = parts[3].strip()
+        cents = parts[5].strip()
 
-      eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
-      today = datetime.datetime.now(tz=eastern_time)
-      if int(long) >= -30:
-        today -= datetime.timedelta(days=1)
+        eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
+        today = datetime.datetime.now(tz=eastern_time)
+        if int(long) >= -30:
+          today -= datetime.timedelta(days=1)
 
-      days = [today]
-      #if today.weekday() == 4: # On Friday, update the entire weekend
-      #  days += [today + datetime.timedelta(days=1), today + datetime.timedelta(days=2)]
-      #elif today.weekday() in [5, 6]: # On Saturday and Sunday, no updates (because we already updated on Friday)
-      #  continue
+        if today.weekday() in [0, 1, 2, 3]:
+          days = [today] # Monday through Thursday only report for the current day
+        elif today.weekday() == 4:
+          # Fridays update the entire weekend (since it's known by that point)
+          days = [today, today + datetime.timedelta(days=1), today + datetime.timedelta(days=2)]
+        elif today.weekday() in [5, 6]:
+          continue # On Saturday and Sunday, no updates (because we already updated on Friday)
 
-      for day in days:
-        latitude, longitude, centicule = get_geohash(day=day)
-        if centicule not in cents:
-          continue # Too far away for this user
+        # Computing DOW holidays is really complex, so I'm just not doing it.
 
-        date = today.strftime('%Y-%m-%d')
-        contents += f'=== [[{date} {lat} {long}]] ===\n'
-        contents += f'Centicule {centicule} [https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}]\n'
+        for day in days:
+          latitude, longitude, centicule = get_geohash(day=day)
+          if centicule not in cents:
+            continue # Too far away for this user
 
-        if verbose:
-          print(f'Updating {page_title} with a new geohash for {date}')
+          date = today.strftime('%Y-%m-%d')
+          contents += f'\n=== [[{date} {lat} {long}]] ===\n'
+          contents += f'[https://maps.google.com/?q={lat}.{latitude},{long}.{longitude} Centicule {centicule}]\n'
 
-    # End 'for line in lines'
-    page.edit(contents, bot=True, summary='Automated update by darkid\'s bot')
+          if verbose:
+            print(f'Updating {page.title} with a new geohash for {date}')
+
+      # End 'for line in lines'
+      if not page.edit(contents, bot=True, summary='Automatic update via https://github.com/jbzdarkid/geohashing'):
+        failures.append(page.title)
+      elif verbose:
+        print(f'Updated {page.title}')
+    except:
+      if verbose:
+        print(f'Failed to update {page.title}')
+        import traceback
+        traceback.print_exc()
+      failures.append(page.title)
+
+  return len(failures)
 
 
 if __name__ == '__main__':
   verbose = True
   w = Wiki('https://geohashing.site/api.php')
-  main(w)
+  exit(main(w))
