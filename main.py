@@ -67,7 +67,7 @@ def main(w):
 
   if event == 'workflow_dispatch':
     # For manual runs (aka testing), don't spam other users' pages.
-    pages = ['User:Darkid/Potential expeditions']
+    pages = [Page(w, 'User:Darkid/Potential expeditions')]
   else:
     pages = w.get_all_category_pages('Category:Tracked by DarkBOT', namespaces=['User'])
 
