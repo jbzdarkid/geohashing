@@ -57,13 +57,21 @@ def get_geohash(day):
 
 
 def main(w):
-  if 'WIKI_USERNAME' in os.environ:
+  event = os.environ.get('GITHUB_EVENT_NAME', 'local_run')
+
+  if event != 'local_run':
     if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
       exit(1)
 
   failures = []
 
-  for page in w.get_all_category_pages('Category:Tracked by DarkBOT', namespaces=['User']):
+  if event == 'workflow_dispatch':
+    # For manual runs (aka testing), don't spam other users' pages.
+    pages = ['User:Darkid/Potential expeditions']
+  else:
+    pages = w.get_all_category_pages('Category:Tracked by DarkBOT', namespaces=['User'])
+
+  for page in pages:
     try:
       if verbose:
         print(f'Updating {page.title}...')
