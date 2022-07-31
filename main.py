@@ -33,8 +33,8 @@ def get_geohash(day):
 
 
 def main(w):
-  #if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
-  #  exit(1)
+  if not w.login(os.environ['WIKI_USERNAME'], os.environ['WIKI_PASSWORD']):
+    exit(1)
 
   # If other people are interested, I can fetch these pages from a category.
   page_titles = [
@@ -72,13 +72,14 @@ def main(w):
 
         date = today.strftime('%Y-%m-%d')
         contents += f'=== [[{date} {lat} {long}]] ===\n'
-        contents += f'Centicule {cent} [https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}]\n'
+        contents += f'Centicule {centicule} [https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}]\n'
 
         if verbose:
           print(f'Updating {page_title} with a new geohash for {date}')
 
     # End 'for line in lines'
     page.edit(contents, bot=True, summary='Automated update by darkid\'s bot')
+
 
 if __name__ == '__main__':
   verbose = True
