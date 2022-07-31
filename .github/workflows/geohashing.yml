@@ -1,7 +1,8 @@
-name: TFWiki Stats
+name: Geohashing
 on:
   schedule:
     - cron: '0 14 * * *' # Run the script daily, after the New York stock exchange opens
+  workflow_dispatch:
 
 concurrency: 
   group: ${{ github.ref }}
@@ -13,6 +14,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: true
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
