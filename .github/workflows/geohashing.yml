@@ -1,0 +1,24 @@
+name: TFWiki Stats
+on:
+  schedule:
+    - cron: '0 14 * * *' # Run the script daily, after the New York stock exchange opens
+
+concurrency: 
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - run: pip install -r requirements.txt
+    - run: python -u main.py
+      timeout-minutes: 10
+      env:
+        WIKI_USERNAME: ${{ secrets.WIKI_USERNAME }}
+        WIKI_PASSWORD: ${{ secrets.WIKI_PASSWORD }}
