@@ -19,7 +19,8 @@ def get_dow_jones(day):
   import requests
   range_start = int((day - datetime.timedelta(days=7)).timestamp()) # One week ago
   range_end = int(day.timestamp())
-  r = requests.get(f'https://finance.yahoo.com/quote/%5EDJI/history?period1={range_start}&period2={range_end}', headers={'User-Agent': 'https://github.com/jbzdarkid/geohashing'})
+  headers = {'User-Agent': 'https://github.com/jbzdarkid/geohashing'} # Yahoo 404s requests without a UA
+  r = requests.get(f'https://finance.yahoo.com/quote/%5EDJI/history?period1={range_start}&period2={range_end}', headers=headers)
 
   # Parse out the data. https://stackoverflow.com/a/1732454
   table = FIND_YAHOO_TABLE.search(r.text)[1]
