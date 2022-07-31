@@ -18,6 +18,7 @@ def get_geohash(day):
     print(f'The DOW for today was {dow_jones}')
 
   import hashlib
+  print(f'{date}-{dow_jones}')
   hash = hashlib.md5(f'{date}-{dow_jones}'.encode('utf-8')).hexdigest()
   if verbose:
     print(f'Raw hash: {hash}')
@@ -55,14 +56,14 @@ def main(w):
 
       eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
       today = datetime.datetime.now(tz=eastern_time)
-      if int(long) <= -30:
+      if int(long) >= -30:
         today -= datetime.timedelta(days=1)
 
       days = [today]
-      if today.weekday() == 4: # On Friday, update the entire weekend
-        days += [today + datetime.timedelta(days=1), today + datetime.timedelta(days=2)]
-      elif today.weekday() in [5, 6]: # On Saturday and Sunday, no updates (because we already updated on Friday)
-        continue
+      #if today.weekday() == 4: # On Friday, update the entire weekend
+      #  days += [today + datetime.timedelta(days=1), today + datetime.timedelta(days=2)]
+      #elif today.weekday() in [5, 6]: # On Saturday and Sunday, no updates (because we already updated on Friday)
+      #  continue
 
       for day in days:
         latitude, longitude, centicule = get_geohash(day=day)
