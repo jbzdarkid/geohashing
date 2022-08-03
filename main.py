@@ -109,7 +109,8 @@ def main(w):
             continue # Too far away for this user
 
           date = today.strftime('%Y-%m-%d')
-          contents += f'\n=== [[{date} {lat} {long}]] ===\n'
+          title = f'{date} {lat} {long}'
+          contents += '\n=== [{{fullurl:%s|action=edit}} %s] ===\n' % (title, title)
           contents += f'[https://maps.google.com/?q={lat}.{latitude},{long}.{longitude} Centicule {centicule}]\n'
           unchanged = False
 
