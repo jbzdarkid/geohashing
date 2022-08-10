@@ -126,7 +126,7 @@ def main(w):
 
           if settings.get('email'):
             user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
-            title = f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {cent}'
+            title = f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {centicule}'
             message = f'Map link: {map_link}\n'
             message += f'Wiki page: {page_link}\n'
 
