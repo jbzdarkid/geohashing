@@ -125,15 +125,14 @@ def main(w):
           unchanged = False
 
           if settings.get('email'):
-            if verbose:
-              print(f'Sending email to {user}')
-
             user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
             title = f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {cent}'
             message = f'Map link: {map_link}\n'
             message += f'Wiki page: {page_link}\n'
 
             w.email_user(user, title, message)
+            if verbose:
+              print(f'Sent email to {user}')
 
       # End 'for line in lines'
       if unchanged:
