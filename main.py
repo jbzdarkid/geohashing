@@ -48,9 +48,9 @@ def get_geohash(day):
   if verbose:
     print(f'Raw hash for {day}: {hash}')
 
-  latitude = float.fromhex(f'0.{hash[:16]}')
-  longitude = float.fromhex(f'0.{hash[16:]}')
-  centicule = str(latitude)[2] + str(longitude)[2]
+  latitude  = str(float.fromhex(f'0.{hash[:16]}'))[2:] # Convert hex to float then removing leading '0.'
+  longitude = str(float.fromhex(f'0.{hash[16:]}'))[2:] # Convert hex to float then removing leading '0.'
+  centicule = latitude[0] + longitude[0]
   if verbose:
     print(f'(lat, long, cent): {latitude}, {longitude}, {centicule}')
 
@@ -84,13 +84,17 @@ def main(w):
         if line.count('|') < 5:
           continue
         parts = line.split('|')
-        lat = parts[1].strip()
-        long = parts[3].strip()
+        lat = int(parts[1].strip())
+        long = int(parts[3].strip())
         cents = parts[5].strip()
+
+        settings = {}
+        if line.count('|') >= 9:
+          settings['email'] = 'email' in parts[9].lower(),
 
         eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
         today = datetime.datetime.now(tz=eastern_time)
-        if int(long) >= -30:
+        if long >= -30:
           today -= datetime.timedelta(days=1)
 
         if today.weekday() in [0, 1, 2, 3]:
@@ -103,19 +107,31 @@ def main(w):
 
         # Computing DOW holidays is really complex, so I'm just not doing it.
 
+        email = ''
+
         for day in days:
           latitude, longitude, centicule = get_geohash(day=day)
           if centicule not in cents:
             continue # Too far away for this user
 
-          date = today.strftime('%Y-%m-%d')
-          title = f'{date} {lat} {long}'
-          contents += '\n=== [{{fullurl:%s|action=edit}} %s] ===\n' % (title, title)
-          contents += f'[https://maps.google.com/?q={lat}.{latitude},{long}.{longitude} Centicule {centicule}]\n'
+          if verbose:
+            print(f'Found geohash on {day} within centicules for {page.title}: {line}')
+
+          title = today.strftime('%Y-%m-%d') + ' {lat} {long}'
+          page_link = f'https://geohashing.site/index.php?title={title}&action=edit'.replace(' ', '%20')
+          map_link = f'https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}'
+
+          contents += '\n=== [{page_link} {title}] ===\n'
+          contents += f'[{map_link} Centicule {centicule}]\n'
+          email += '<br><h2><a href="{page_link}">{title}</a></h2><br>'
+          email += '<br><a href="{map_link}">Centicule {centicule}</a><br>'
           unchanged = False
 
+        if settings.get('email') and email:
+          user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
           if verbose:
-            print(f'Updating {page.title} with a new geohash for {date}')
+            print(f'Sending email to {user}')
+          w.email_user(user, 'Geohashing site within your centicles', email)
 
       # End 'for line in lines'
       if unchanged:
