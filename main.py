@@ -107,8 +107,6 @@ def main(w):
 
         # Computing DOW holidays is really complex, so I'm just not doing it.
 
-        email = ''
-
         for day in days:
           latitude, longitude, centicule = get_geohash(day=day)
           if centicule not in cents:
@@ -117,22 +115,25 @@ def main(w):
           if verbose:
             print(f'Found geohash on {day} within centicules for {page.title}: {line}')
 
-          title = today.strftime('%Y-%m-%d') + ' {lat} {long}'
+          date = today.strftime('%Y-%m-%d')
+          title = f'{date} {lat} {long}'
           page_link = f'https://geohashing.site/index.php?title={title}&action=edit'.replace(' ', '%20')
           map_link = f'https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}'
 
           contents += f'\n=== [{page_link} {title}] ===\n'
           contents += f'[{map_link} Centicule {centicule}]\n'
-          email += '<br><h2><a href="{page_link}">{title}</a></h2><br>'
-          email += '<br><a href="{map_link}">Centicule {centicule}</a><br>'
           unchanged = False
 
-        if settings.get('email') and email:
-          user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
-          if verbose:
-            print(f'Sending email to {user}')
-          j = w.email_user(user, 'Geohashing site within your centicles', email)
-          print(j)
+          if settings.get('email'):
+            if verbose:
+              print(f'Sending email to {user}')
+
+            user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
+            title = f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {cent}'
+            message = f'Map link: {map_link}\n'
+            message += f'Wiki page: {page_link}\n'
+
+            w.email_user(user, title, message)
 
       # End 'for line in lines'
       if unchanged:
