@@ -121,7 +121,7 @@ def main(w):
           page_link = f'https://geohashing.site/index.php?title={title}&action=edit'.replace(' ', '%20')
           map_link = f'https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}'
 
-          contents += '\n=== [{page_link} {title}] ===\n'
+          contents += f'\n=== [{page_link} {title}] ===\n'
           contents += f'[{map_link} Centicule {centicule}]\n'
           email += '<br><h2><a href="{page_link}">{title}</a></h2><br>'
           email += '<br><a href="{map_link}">Centicule {centicule}</a><br>'
