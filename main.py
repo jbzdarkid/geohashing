@@ -131,7 +131,8 @@ def main(w):
           user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
           if verbose:
             print(f'Sending email to {user}')
-          w.email_user(user, 'Geohashing site within your centicles', email)
+          j = w.email_user(user, 'Geohashing site within your centicles', email)
+          print(j)
 
       # End 'for line in lines'
       if unchanged:
