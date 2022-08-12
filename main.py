@@ -1,10 +1,12 @@
+import datetime
+import hashlib
+import os
+import re
+import requests
 from importlib import import_module
 Wiki = import_module('TFWiki-scripts.wikitools.wiki').Wiki
 Page = import_module('TFWiki-scripts.wikitools.page').Page
 
-import datetime
-import os
-import re
 verbose = False
 
 FIND_YAHOO_TABLE = re.compile('<table[^>]*?data-test="historical-prices">(.*?)</table>')
@@ -16,7 +18,6 @@ def get_dow_jones(day):
   if day.strftime('%Y-%m-%d') in dow_cache:
     return dow_cache[day.strftime('%Y-%m-%d')]
 
-  import requests
   range_start = int((day - datetime.timedelta(days=7)).timestamp()) # One week ago
   range_end = int(day.timestamp())
   headers = {'User-Agent': 'https://github.com/jbzdarkid/geohashing'} # Yahoo 404s requests without a UA
@@ -43,7 +44,6 @@ def get_geohash(day):
   date = day.strftime('%Y-%m-%d')
   dow_jones_open = get_dow_jones(day)
 
-  import hashlib
   hash = hashlib.md5(f'{date}-{dow_jones_open}'.encode('utf-8')).hexdigest()
   if verbose:
     print(f'Raw hash for {day}: {hash}')
