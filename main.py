@@ -90,7 +90,7 @@ def main(w):
 
         settings = {}
         if line.count('|') >= 9:
-          settings['email'] = 'email' in parts[9].lower(),
+          settings['email'] = 'email' in parts[9].lower()
 
         eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
         today = datetime.datetime.now(tz=eastern_time)
