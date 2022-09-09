@@ -130,9 +130,9 @@ def main(w):
             message = f'Map link: {map_link}\n'
             message += f'Wiki page: {page_link}\n'
 
-            w.email_user(user, title, message)
+            r = w.email_user(user, title, message)
             if verbose:
-              print(f'Sent email to {user}')
+              print(f'Sent email to {user}: {r}')
 
       # End 'for line in lines'
       if unchanged:
