@@ -91,6 +91,7 @@ def main(w):
         settings = {}
         if line.count('|') >= 9:
           settings['email'] = 'email' in parts[9].lower()
+          settings['talkpage'] = 'talkpage' in parts[9].lower()
 
         eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
         today = datetime.datetime.now(tz=eastern_time)
@@ -133,6 +134,18 @@ def main(w):
             r = w.email_user(user, title, message)
             if verbose:
               print(f'Sent email to {user}: {r}')
+
+          if settings.get('talkpage'):
+            page = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
+            talkpage = Page(w, page.replace('User:', 'User talk:'))
+            talk_contents = talkpage.get_wiki_text()
+
+            talk_contents += f'\n=== [{page_link} {title}] ===\n'
+            talk_contents += f'[{map_link} Centicule {centicule}]\n'
+
+            r = talkpage.edit(talk_contents, bot=True, summary=f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {centicule}')
+            if verbose:
+              print(f'Added talkpage message on {talkpage.title}: {r}')
 
       # End 'for line in lines'
       if unchanged:
