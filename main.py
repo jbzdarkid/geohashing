@@ -140,7 +140,7 @@ def main(w):
             talkpage = Page(w, page.replace('User:', 'User talk:'))
             talk_contents = talkpage.get_wiki_text()
 
-            talk_contents += f'\n=== [{page_link} {title}] ===\n'
+            talk_contents += f'\n== [{page_link} {title}] ==\n'
             talk_contents += f'[{map_link} Centicule {centicule}]\n'
 
             r = talkpage.edit(talk_contents, bot=True, summary=f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {centicule}')
