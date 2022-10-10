@@ -136,8 +136,8 @@ def main(w):
               print(f'Sent email to {user}: {r}')
 
           if settings.get('talkpage'):
-            page = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
-            talkpage = Page(w, page.replace('User:', 'User talk:'))
+            talkpage_title = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
+            talkpage = Page(w, talkpage_title.replace('User:', 'User talk:'))
             talk_contents = talkpage.get_wiki_text()
 
             talk_contents += f'\n== [{page_link} {title}] ==\n'
