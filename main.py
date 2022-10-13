@@ -140,12 +140,12 @@ def main(w):
             talkpage = Page(w, talkpage_title.replace('User:', 'User talk:'))
             talk_contents = talkpage.get_wiki_text()
 
-            talk_contents += f'\n== [{page_link} {title}] ==\n'
-            talk_contents += f'[{map_link} Centicule {centicule}]\n'
+            talk_contents += f'\n== New geohashing site on {date} ==\n'
+            talk_contents += f'See [[{page}]]\n'
 
             r = talkpage.edit(talk_contents, bot=True, summary=f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {centicule}')
             if verbose:
-              print(f'Added talkpage message on {talkpage.title}: {r}')
+              print(f'Added talkpage message on {talkpage.title}:', r)
 
       # End 'for line in lines'
       if unchanged:
