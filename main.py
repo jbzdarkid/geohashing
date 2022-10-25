@@ -116,12 +116,11 @@ def main(w):
           if verbose:
             print(f'Found geohash on {day} within centicules for {page.title}: {line}')
 
-          date = today.strftime('%Y-%m-%d')
-          title = f'{date} {lat} {long}'
-          page_link = f'https://geohashing.site/index.php?title={title}&action=edit'.replace(' ', '%20')
+          date = day.strftime('%Y-%m-%d')
+          expi = Page(w, f'{date} {lat} {long}')
           map_link = f'https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}'
 
-          contents += f'\n=== [{page_link} {title}] ===\n'
+          contents += f'\n=== [{expi.get_edit_url()} {expi.title}] ===\n'
           contents += f'[{map_link} Centicule {centicule}]\n'
           unchanged = False
 
@@ -129,7 +128,8 @@ def main(w):
             user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
             title = f'On {date}, the geohashing site in {lat} {long} is within your selected centicule {centicule}'
             message = f'Map link: {map_link}\n'
-            message += f'Wiki page: {page_link}\n'
+            message += f'Wiki page: {page.get_page_url()}\n'
+            message += f'Expedition page: {expi.get_edit_url()}\n'
 
             r = w.email_user(user, title, message)
             if verbose:
