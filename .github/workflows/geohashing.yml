@@ -1,7 +1,7 @@
 name: Geohashing
 on:
   schedule:
-    - cron: '0 14 * * *' # Run the script daily, after the New York stock exchange opens
+    - cron: '0 15 * * *' # Run the script daily, after the New York stock exchange opens
   workflow_dispatch:
 
 concurrency: 

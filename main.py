@@ -7,7 +7,7 @@ from importlib import import_module
 Wiki = import_module('TFWiki-scripts.wikitools.wiki').Wiki
 Page = import_module('TFWiki-scripts.wikitools.page').Page
 
-verbose = False
+verbose = True
 
 FIND_YAHOO_TABLE = re.compile('<table[^>]*?data-test="historical-prices">(.*?)</table>')
 FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
