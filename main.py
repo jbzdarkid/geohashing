@@ -92,6 +92,7 @@ def main(w):
         if line.count('|') >= 9:
           settings['email'] = 'email' in parts[9].lower()
           settings['talkpage'] = 'talkpage' in parts[9].lower()
+          settings['saturday'] = 'saturday' in parts[9].lower()
 
         eastern_time = datetime.timezone(-datetime.timedelta(hours=5, minutes=30))
         today = datetime.datetime.now(tz=eastern_time)
@@ -123,6 +124,9 @@ def main(w):
           contents += f'\n=== [{expi.get_edit_url()} {expi.title}] ===\n'
           contents += f'[{map_link} Centicule {centicule}]\n'
           unchanged = False
+
+          if settings.get('saturday') and day.weekday() != 5:
+            continue
 
           if settings.get('email'):
             user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
