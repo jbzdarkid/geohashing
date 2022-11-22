@@ -77,7 +77,7 @@ def main(w):
       if verbose:
         print(f'Updating {page.title}...')
       contents = page.get_wiki_text()
-      unchanged = True
+      reported_for_page = set()
 
       lines = contents.split('\n')
       for line in lines:
@@ -121,9 +121,12 @@ def main(w):
           expi = Page(w, f'{date} {lat} {long}')
           map_link = f'https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}'
 
+          if map_link in reported_for_page:
+            continue # We've already reported on this geohash for this page
+          reported_for_page.add(map_link)
+
           contents += f'\n=== [{expi.get_edit_url()} {expi.title}] ===\n'
           contents += f'[{map_link} Centicule {centicule}]\n'
-          unchanged = False
 
           if settings.get('saturday') and day.weekday() != 5:
             continue
@@ -152,8 +155,8 @@ def main(w):
               print(f'Added talkpage message on {talkpage.title}:', r)
 
       # End 'for line in lines'
-      if unchanged:
-        print(f'No relevant changes for {page.title}')
+      if len(reported_for_page) == 0:
+        print(f'No relevant geohashes for {page.title}')
       elif page.edit(contents, bot=True, summary='Automatic update via https://github.com/jbzdarkid/geohashing'):
         if verbose:
           print(f'Updated {page.title}')
