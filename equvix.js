@@ -93,7 +93,7 @@ var centicles = {
     centicles.setLatLng(new google.maps.LatLng(params.lat, params.lng));
     
     centicles.map = new google.maps.Map(document.getElementById('map_canvas'), {
-      zoom: 8,
+      zoom: 4,
       center: centicles.ctrll,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     });
