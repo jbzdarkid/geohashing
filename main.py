@@ -9,9 +9,9 @@ Page = import_module('TFWiki-scripts.wikitools.page').Page
 
 verbose = True
 
-FIND_YAHOO_TABLE = re.compile('<table[^>]*?data-test="historical-prices">(.*?)</table>')
+FIND_YAHOO_TABLE = re.compile('<table[^>]*>(.*?)</table>')
 FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
-FIND_TABLE_CELLS = re.compile('<span>([^>]*?)</span>')
+FIND_TABLE_CELLS = re.compile('<td[^>]*>(.*?)</td>')
 
 dow_cache = {}
 def get_dow_jones(day):
@@ -20,8 +20,9 @@ def get_dow_jones(day):
 
   range_start = int((day - datetime.timedelta(days=7)).timestamp()) # One week ago
   range_end = int(day.timestamp())
-  headers = {'User-Agent': 'https://github.com/jbzdarkid/geohashing'} # Yahoo 404s requests without a UA
+  headers = {'User-Agent': 'Mozilla/5.0 (https://github.com/jbzdarkid/geohashing)'} # Yahoo 404s requests without a UA
   r = requests.get(f'https://finance.yahoo.com/quote/%5EDJI/history?period1={range_start}&period2={range_end}', headers=headers)
+  r.raise_for_status()
 
   # Parse out the data. https://stackoverflow.com/a/1732454
   table = FIND_YAHOO_TABLE.search(r.text)[1]
