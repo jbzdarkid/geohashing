@@ -1,45 +1,13 @@
 import datetime
 import hashlib
 import os
-import re
-import requests
 from importlib import import_module
 Wiki = import_module('TFWiki-scripts.wikitools.wiki').Wiki
 Page = import_module('TFWiki-scripts.wikitools.page').Page
 
+from dow_jones import get_dow_jones
+
 verbose = True
-
-FIND_YAHOO_TABLE = re.compile('<table[^>]*>(.*?)</table>')
-FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
-FIND_TABLE_CELLS = re.compile('<td[^>]*>(.*?)</td>')
-
-dow_cache = {}
-def get_dow_jones(day):
-  if day.strftime('%Y-%m-%d') in dow_cache:
-    return dow_cache[day.strftime('%Y-%m-%d')]
-
-  range_start = int((day - datetime.timedelta(days=7)).timestamp()) # One week ago
-  range_end = int(day.timestamp())
-  headers = {'User-Agent': 'Mozilla/5.0 (https://github.com/jbzdarkid/geohashing)'} # Yahoo 404s requests without a UA
-  r = requests.get(f'https://finance.yahoo.com/quote/%5EDJI/history?period1={range_start}&period2={range_end}', headers=headers)
-  r.raise_for_status()
-
-  # Parse out the data. https://stackoverflow.com/a/1732454
-  table = FIND_YAHOO_TABLE.search(r.text)[1]
-  row = FIND_TABLE_ROWS.findall(table)[1] # The 0th row is the table headers.
-  cells = FIND_TABLE_CELLS.findall(row)
-
-  # At time of writing (2022-07-30) the rows are as follows:
-  # Date, Open, High, Low, Close, Adjusted Close, Volume
-  # Fortunately, we only care about the first two, so hopefully Yahoo doesn't mess with this too badly.
-  dow_date = datetime.datetime.strptime(cells[0], '%b %d, %Y') # Unfortunately Yahoo uses the USA date standard: Dec 21, 2012
-  dow_jones_open = cells[1].replace(',', '') # And they also use the USA numerical separator: ,
-  if verbose:
-    print(f'The DOW for {dow_date} opened at {dow_jones_open}')
-
-  dow_cache[day.strftime('%Y-%m-%d')] = dow_jones_open
-  return dow_jones_open
-
 
 def get_geohash(day):
   date = day.strftime('%Y-%m-%d')
@@ -106,7 +74,8 @@ def main(w):
           # Fridays update the entire weekend (since it's known by that point)
           days = [today, today + datetime.timedelta(days=1), today + datetime.timedelta(days=2)]
         elif today.weekday() in [5, 6]:
-          continue # On Saturday and Sunday, no updates (because we already updated on Friday)
+          days = [today]
+          # continue # On Saturday and Sunday, no updates (because we already updated on Friday)
 
         # Computing DOW holidays is really complex, so I'm just not doing it.
 
