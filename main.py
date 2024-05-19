@@ -74,8 +74,7 @@ def main(w):
           # Fridays update the entire weekend (since it's known by that point)
           days = [today, today + datetime.timedelta(days=1), today + datetime.timedelta(days=2)]
         elif today.weekday() in [5, 6]:
-          days = [today]
-          # continue # On Saturday and Sunday, no updates (because we already updated on Friday)
+          continue # On Saturday and Sunday, no updates (because we already updated on Friday)
 
         # Computing DOW holidays is really complex, so I'm just not doing it.
 
