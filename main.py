@@ -166,7 +166,7 @@ def main(w):
     if config_contents:
       config = page.get_wiki_text()
       config += '\n'.join(config_contents)
-      r = page.edit(config, bot=True, summary='Automatic update via https://github.com/jbzdarkid/geohashing'):
+      r = page.edit(config, bot=True, summary='Automatic update via https://github.com/jbzdarkid/geohashing')
       if verbose:
         print(f'Edited config page {page}: {r}')
     if talk_contents:
