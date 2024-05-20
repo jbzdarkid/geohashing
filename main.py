@@ -179,7 +179,7 @@ def main(w):
         print(f'Edited talkpage {talkpage}: {r}')
     if email_message:
       user = page.basename.split('/', 1)[0] # User:Darkid/Foo -> User:Darkid
-      title = 'New geohash(es) in your centicule(s)')
+      title = 'New geohash(es) in your centicule(s)'
       email = '<br>'.join(email_message)
       r = w.email_user(user, title, email)
       if verbose:
