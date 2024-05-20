@@ -14,8 +14,7 @@ def get_id():
   return _id
 
 class Tests:
-  def mock_get_dow(self, day):
-    return {
+  dow_opens = {
       '2024-05-07': 38858.94,
       '2024-05-06': 38762.43,
       '2024-05-03': 38709.36,
@@ -28,21 +27,28 @@ class Tests:
       '2024-04-24': 38552.79,
       '2024-04-23': 38356.07,
       '2024-04-22': 38116.89,
-    }[day.strftime('%Y-%m-%d')]
+    }
 
   #############
   #!# Tests #!#
   #############
   def test_hashes(self):
-    lat, long, cent = main.get_geohash(datetime.datetime(year=2024, month=4, day=22))
-    assert lat == '15762611643391014'
-    assert long == '030772946630805962'
-    assert cent == '10'
+    geohashes = main.get_geohashes(self.dow_opens, datetime.datetime(year=2024, month=5, day=07))
+    # These values were independently confirmed with geohashing.info
+    lat, long, cent = geohashes['2024-04-30')
+    assert lat == '90233'
+    assert long == '55186'
+    assert cent == '95'
 
-    lat, long, cent = main.get_geohash(datetime.datetime(year=2024, month=5, day=1))
+    lat, long, cent = geohashes['2024-05-01')
     assert lat == '9725225494237593'
     assert long == '987217588117626'
     assert cent == '99'
+
+    lat, long, cent = geohashes['2024-05-04')
+    assert lat == '86571'
+    assert long == '46902'
+    assert cent == '84'
 
 if __name__ == '__main__':
   test_class = Tests()
