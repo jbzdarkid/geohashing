@@ -66,6 +66,8 @@ def get_dow_jones(day):
     for date, dow in dow_from_markets():
       temp_cache[date.strftime('%Y-%m-%d')].append(dow)
 
+    print(temp_cache)
+
     for key, value in temp_cache.items():
       if len(value) < 3:
         continue
