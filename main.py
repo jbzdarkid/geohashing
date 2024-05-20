@@ -17,7 +17,7 @@ def get_geohashes(dow_opens):
   last_dow_open = None
   date_range = [datetime.datetime.today() + datetime.timedelta(days=i) for i in range(7)][::-1]
   for day in date_range:
-    date = day.strftime('%Y-%m-%d'))
+    date = day.strftime('%Y-%m-%d')
     if dow_open := dow_opens.get(date):
       last_dow_open = dow_open
     if not last_dow_open:
