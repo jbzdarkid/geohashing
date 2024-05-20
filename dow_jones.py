@@ -55,38 +55,34 @@ def dow_from_markets():
     yield (date, cells[1].replace(',', ''))
 
 
-dow_cache = {}
-def get_dow_jones(day):
-  if not dow_cache:
-    temp_cache = collections.defaultdict(list)
-    for date, dow in dow_from_yahoo():
-      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-    for date, dow in dow_from_investing():
-      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-    for date, dow in dow_from_markets():
-      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-
-    print(temp_cache)
-
-    for key, value in temp_cache.items():
-      if len(value) < 3:
-        continue
-      source1, source2, source3 = value
-      if source1 == source2:
-        value = source1
-      elif source2 == source3:
-        value = source2
-      elif source3 == source1:
-        value = source3
-      else:
-        continue
-      dow_cache[key] = value
-
-  dow_jones_open = None
-  while not dow_jones_open:
-    dow_jones_open = dow_cache.get(day.strftime('%Y-%m-%d'), None)
-    day -= timedelta(hours=1)
+def get_dow_jones_opens(day):
+  temp_cache = collections.defaultdict(list)
+  for date, dow in dow_from_yahoo():
+    temp_cache[date.strftime('%Y-%m-%d')].append(dow)
+  for date, dow in dow_from_investing():
+    temp_cache[date.strftime('%Y-%m-%d')].append(dow)
+  for date, dow in dow_from_markets():
+    temp_cache[date.strftime('%Y-%m-%d')].append(dow)
 
   if verbose:
-    print(f'The DOW for {day} opened at {dow_jones_open}')
-  return dow_jones_open
+    print('Temp cache', temp_cache)
+
+  dow_opens = {}
+  for key, value in temp_cache.items():
+    if len(value) < 3:
+      continue
+    source1, source2, source3 = value
+    if source1 == source2:
+      value = source1
+    elif source2 == source3:
+      value = source2
+    elif source3 == source1:
+      value = source3
+    else:
+      continue
+    dow_opens[key] = value
+
+  if verbose:
+    print('Dow opens', dow_opens)
+
+  return dow_opens
