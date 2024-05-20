@@ -11,11 +11,11 @@ import dow_jones
 
 verbose = False
 
-def get_geohashes(dow_opens):
+def get_geohashes(dow_opens, end_day = datetime.datetime.today()):
   geohashes = {}
 
   last_dow_open = None
-  date_range = [datetime.datetime.today() + datetime.timedelta(days=i) for i in range(7)][::-1]
+  date_range = [end_day - datetime.timedelta(days=i) for i in range(10)][::-1]
   for day in date_range:
     date = day.strftime('%Y-%m-%d')
     if dow_open := dow_opens.get(date):
