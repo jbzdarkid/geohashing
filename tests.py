@@ -46,7 +46,7 @@ class Tests:
 
 if __name__ == '__main__':
   test_class = Tests()
-  with patch('main.get_dow_jones', new=test_class.mock_get_dow):
+  with patch('dow_jones.get_dow_jones_opens', new=test_class.mock_get_dow):
 
     def is_test(method):
       return inspect.ismethod(method) and method.__name__.startswith('test')
