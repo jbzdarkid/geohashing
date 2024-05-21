@@ -1,3 +1,4 @@
+import collections
 import datetime
 import hashlib
 import os
@@ -16,7 +17,7 @@ def get_geohash(dow_opens, end_day, w30 = True):
   date_range = [end_day - datetime.timedelta(days=i) for i in range(10)][::-1]
   for day in date_range:
     # The 30W rule states that coordinates east of Long -30 should be computed using the previous day's DOW opening.
-    if not w30 and day >= datetime.datetime(2008, 5, 27):
+    if not w30 and day >= datetime.datetime(2008, 5, 27, tzinfo=datetime.timezone.utc):
       day -= datetime.timedelta(days = 1)
       
     date = day.strftime('%Y-%m-%d')
@@ -25,7 +26,6 @@ def get_geohash(dow_opens, end_day, w30 = True):
 
   # Compute using the original unmodified day
   date = end_day.strftime('%Y-%m-%d')
-  print(date, last_dow_open)
   hash = hashlib.md5(f'{date}-{last_dow_open}'.encode('utf-8')).hexdigest()
   if verbose:
     print(f'Raw hash for {end_day}: {hash}')
@@ -40,7 +40,10 @@ def get_geohash(dow_opens, end_day, w30 = True):
 
 DAY_OF_WEEK = 'monday, tuesday, wednesday, thursday, friday, saturday, sunday'.split(', ')
 def parse_config(contents):
-  config = {} # Nested map, day-of-week:centicule:{data}
+  # Nested map, day-of-week:(lat, long):centicule:{notification_methods}
+  config = collections.defaultdict(
+    lambda: collections.defaultdict(
+      lambda: collections.defaultdict(dict)))
 
   lines = contents.split('\n')
   for line in lines:
@@ -54,8 +57,11 @@ def parse_config(contents):
     target_days = []
     notification_methods = ['config_page']
     if len(parts) >= 9:
-      for setting in parts[9].lower().split(' '):
-        if setting in DAY_OF_WEEK:
+      settings = parts[9].lower().replace(',', ' ').split(' ') # Separators may be ',' or ' '
+      for setting in settings:
+        if not setting:
+          continue
+        elif setting in DAY_OF_WEEK:
           target_days.append(setting)
         elif setting in ['email', 'talkpage']:
           notification_methods.append(setting)
@@ -65,10 +71,10 @@ def parse_config(contents):
       target_days = DAY_OF_WEEK # If not specified, all the days of the week
 
     for day in target_days:
-      config[day] = {}
-      config[day][(lat, long)] = {'cents': cents}
-      for method in notification_methods:
-        config[day][(lat, long)][method] = True
+      for cent in cents.replace(',', ' ').split(' '): # Separators may be ',' or ' '
+        if cent: # Only handle non-empty to skip padding
+          for method in notification_methods:
+            config[day][(lat, long)][cent][method] = True
   
   return config
 
@@ -122,10 +128,7 @@ def main(w):
       break
     time.sleep(60) # Sleep for 60 seconds
 
-  # TODO: Inline.
-  geohashes_30e = get_geohashes(dow_opens, 'e') # Map of YYYY-mm-dd:(latitude, longitude, centicule).
-  geohashes_30w = get_geohashes(dow_opens, 'w') # There are two of these because of the 30W rule. Google it.
-
+  # Now that the stock exchange has opened (and we have information about the dow jones), we can process geohashes.
   for page in pages:
     if verbose:
       print(f'Handling {page.title}...')

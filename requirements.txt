@@ -1,1 +1,2 @@
 -r ./TFWiki-scripts/requirements.txt
+tzdata

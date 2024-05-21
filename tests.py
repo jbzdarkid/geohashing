@@ -56,25 +56,74 @@ class Tests:
 
   def test_hashes_30w(self):
     # These values were independently confirmed with geohashing.info
-    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 4, 30), w30 = False)
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 4, 30, tzinfo=datetime.timezone.utc), w30 = False)
     assert lat == '1352540080910259'
     assert long == '9037177752203457'
     assert cent == '19'
 
-    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 1), w30 = False)
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 1, tzinfo=datetime.timezone.utc), w30 = False)
     assert lat == '915065169318582'
     assert long == '4317648130720158'
     assert cent == '94'
 
-    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 4), w30 = False)
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 4, tzinfo=datetime.timezone.utc), w30 = False)
     assert lat == '8657127823310143'
     assert long == '4690159903840444'
     assert cent == '84'
 
-    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 6), w30 = False)
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 6, tzinfo=datetime.timezone.utc), w30 = False)
     assert lat == '06277180306206916'
     assert long == '5890366767633993'
     assert cent == '05'
+    
+  def test_parse_config(self):
+    text = '''
+    {| border="1" cellpadding="5" cellspacing="0"
+    |-
+    !Latitude!!Longitude!!Centicule!!Message!!Settings
+    |-
+    | 47 || -122 || 50 51 52 60 61 62 70 71 72 || || Email, Saturday
+    |-
+    | 47 || -122 || 61 || ||
+    |}
+    '''
+
+    config = main.parse_config(text)
+    assert len(config) == 7
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'sunday']:
+      assert config[day] == {(47, -122): {'61': {'config_page': True}}}
+
+    assert len(config['saturday'][(47, -122)]) == 9
+    assert config['saturday'][(47, -122)]['50'] == {'email': True, 'config_page': True}
+    assert config['saturday'][(47, -122)]['61'] == {'email': True, 'config_page': True}
+
+
+  def test_parse_config_cents(self):
+    text = '''
+    | 1 || 2 || 03 04 05 06          || || Monday
+    | 1 || 2 ||    04 05 06 07       || || Monday, Email
+    | 1 || 2 ||       05 06 07 08    || || Monday, Tuesday
+    | 1 || 2 ||          06 07 08 09 || || Monday, Tuesday, Talkpage
+    '''
+    config = main.parse_config(text)
+    assert len(config) == 2
+
+    assert len(config['monday']) == 1
+    assert len(config['monday'][(1, 2)]) == 7
+    assert config['monday'][(1, 2)]['03'] == {'config_page': True}
+    assert config['monday'][(1, 2)]['04'] == {'config_page': True, 'email': True}
+    assert config['monday'][(1, 2)]['05'] == {'config_page': True, 'email': True}
+    assert config['monday'][(1, 2)]['06'] == {'config_page': True, 'email': True, 'talkpage': True}
+    assert config['monday'][(1, 2)]['07'] == {'config_page': True, 'email': True, 'talkpage': True}
+    assert config['monday'][(1, 2)]['08'] == {'config_page': True,                'talkpage': True}
+    assert config['monday'][(1, 2)]['09'] == {'config_page': True,                'talkpage': True}
+
+    assert len(config['tuesday'][(1, 2)]) == 5
+    assert config['tuesday'][(1, 2)]['05'] == {'config_page': True}
+    assert config['tuesday'][(1, 2)]['06'] == {'config_page': True, 'talkpage': True}
+    assert config['tuesday'][(1, 2)]['07'] == {'config_page': True, 'talkpage': True}
+    assert config['tuesday'][(1, 2)]['08'] == {'config_page': True, 'talkpage': True}
+    assert config['tuesday'][(1, 2)]['09'] == {'config_page': True, 'talkpage': True}
 
 if __name__ == '__main__':
   test_class = Tests()
