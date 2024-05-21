@@ -1,6 +1,7 @@
 # A very light smattering of tests
 import datetime
 import inspect
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
