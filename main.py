@@ -19,7 +19,7 @@ def get_geohash(dow_opens, end_day, w30 = True):
     # The 30W rule states that coordinates east of Long -30 should be computed using the previous day's DOW opening.
     if not w30 and day >= datetime.datetime(2008, 5, 27, tzinfo=datetime.timezone.utc):
       day -= datetime.timedelta(days = 1)
-      
+
     date = day.strftime('%Y-%m-%d')
     if dow_open := dow_opens.get(date):
       last_dow_open = dow_open
@@ -171,7 +171,7 @@ def main(w, today):
       talkpage = Page(w, talkpage_title.replace('User:', 'User talk:'))
       talk = talkpage.get_wiki_text()
       talk += '\n'.join(talk_contents)
-      r - talkpage.edit(talk, bot=True, summary='New geohash(es) in your centicule(s)')
+      r = talkpage.edit(talk, bot=True, summary='New geohash(es) in your centicule(s)')
       if verbose:
         print(f'Edited talkpage {talkpage}: {r}')
     if email_message:

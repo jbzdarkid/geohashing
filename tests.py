@@ -3,10 +3,9 @@ import datetime
 import inspect
 import os
 import sys
-from pathlib import Path
-from unittest.mock import patch
 
-import main, dow_jones
+import main
+import dow_jones
 
 _id = 0
 def get_id():
@@ -100,7 +99,7 @@ class Tests:
     assert lat == '06277180306206916'
     assert long == '5890366767633993'
     assert cent == '05'
-    
+
   def test_parse_config(self):
     text = '''
     {| border="1" cellpadding="5" cellspacing="0"

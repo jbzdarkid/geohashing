@@ -1,7 +1,7 @@
 import collections
 import re
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 
 verbose = False
 
@@ -21,7 +21,7 @@ def dow_from_yahoo():
     cells = FIND_TABLE_CELLS.findall(row)
     if not cells:
       continue
-    
+
     # This pagescraper was last updated on 2024-05-18
     date = datetime.strptime(cells[0], '%b %d, %Y')
     yield (date, cells[1].replace(',', ''))
