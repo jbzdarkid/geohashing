@@ -34,7 +34,7 @@ class MockWiki:
   def get_all_category_pages(self, *args, **kwargs):
     return self.category_pages
 
-  def login(self, user, pass):
+  def login(self, username, password):
     return True
 
 class Tests:
