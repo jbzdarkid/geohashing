@@ -186,6 +186,9 @@ class Tests:
     source3 = [(datetime.datetime(2020, 1, 1), '100')]
     dow_jones.dow_sources = [lambda: source1, lambda: source2, lambda: source3]
 
+    os.environ['WIKI_USERNAME'] = 'mock_username'
+    os.environ['WIKI_PASSWORD'] = 'mock_password'
+
     main.Page = MockPage
 
     wiki = MockWiki()
