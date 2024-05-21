@@ -3,7 +3,7 @@ import re
 import requests
 from datetime import datetime, timedelta
 
-verbose = True
+verbose = False
 
 FIND_TABLE       = re.compile('<table[^>]*>(.*?)</table>')
 FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
@@ -28,7 +28,6 @@ def dow_from_yahoo():
 
 
 def dow_from_investing():
-  return
   r = requests.get('https://www.investing.com/indices/us-30-historical-data', headers=headers)
   if not r.ok:
     print(r.text)
@@ -64,14 +63,12 @@ def dow_from_markets():
     yield (date, cells[1].replace(',', ''))
 
 
+dow_sources = [dow_from_yahoo, dow_from_investing, dow_from_markets]
 def get_dow_jones_opens():
   temp_cache = collections.defaultdict(list)
-  for date, dow in dow_from_yahoo():
-    temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-  for date, dow in dow_from_investing():
-    temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-  for date, dow in dow_from_markets():
-    temp_cache[date.strftime('%Y-%m-%d')].append(dow)
+  for dow_source in dow_sources:
+    for date, dow in dow_source():
+      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
 
   if verbose:
     print('Temp cache', temp_cache)
@@ -87,7 +84,8 @@ def get_dow_jones_opens():
     elif len(values) > 2 and values[2] == values[0]:
       dow_opens[key] = values[2]
     else:
-      dow_opens[key] = -len(values) # Signal value
+      if verbose:
+        print(f'Not enough information to determine the DOW opening for {key}')
 
   if verbose:
     print('Dow opens', dow_opens)

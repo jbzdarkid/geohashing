@@ -5,13 +5,34 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-import main
+import main, dow_jones
 
 _id = 0
 def get_id():
   global _id
   _id += 1
   return _id
+
+class MockPage:
+  def __init__(self, wiki, title):
+    self.title = title
+    self.wikitext = f'default for {self.title}'
+
+  def get_wiki_text(self):
+    return self.wikitext
+
+  def get_edit_url(self):
+    return 'https://edit.url/' + self.title.replace(' ', '_')
+
+  def edit(self, contents, **kwargs):
+    self.wikitext = contents
+
+class MockWiki:
+  def __init__(self):
+    self.category_pages = []
+
+  def get_all_category_pages(self, *args, **kwargs):
+    return self.category_pages
 
 class Tests:
   dow_opens = {
@@ -97,6 +118,37 @@ class Tests:
     assert config['saturday'][(47, -122)]['50'] == {'email': True, 'config_page': True}
     assert config['saturday'][(47, -122)]['61'] == {'email': True, 'config_page': True}
 
+  def test_dow_quorum(self):
+    source1 = [(datetime.datetime(2020, 1, 1), 100)]
+    source2 = [(datetime.datetime(2020, 1, 1), 100)]
+    source3 = [(datetime.datetime(2020, 1, 1), 100)]
+    dow_jones.dow_sources = [lambda: source1, lambda: source2, lambda: source3]
+
+    assert dow_jones.get_dow_jones_opens() == {'2020-01-01': 100}
+
+    source1 = [(datetime.datetime(2020, 1, 1), 101)]
+    assert dow_jones.get_dow_jones_opens() == {'2020-01-01': 100}
+
+    source2 = [(datetime.datetime(2020, 1, 1), 101)]
+    assert dow_jones.get_dow_jones_opens() == {'2020-01-01': 101}
+
+    source1 = [(datetime.datetime(2020, 1, 1), 102)]
+    assert dow_jones.get_dow_jones_opens() == {}
+
+    source3 = [(datetime.datetime(2020, 1, 1), 102)]
+    assert dow_jones.get_dow_jones_opens() == {'2020-01-01': 102}
+
+    source2 = [(datetime.datetime(2020, 1, 2), 103)]
+    assert dow_jones.get_dow_jones_opens() == {'2020-01-01': 102}
+
+    source1 = []
+    assert dow_jones.get_dow_jones_opens() == {}
+
+    source2 = []
+    assert dow_jones.get_dow_jones_opens() == {}
+
+    source3 = []
+    assert dow_jones.get_dow_jones_opens() == {}
 
   def test_parse_config_cents(self):
     text = '''
@@ -125,6 +177,28 @@ class Tests:
     assert config['tuesday'][(1, 2)]['08'] == {'config_page': True, 'talkpage': True}
     assert config['tuesday'][(1, 2)]['09'] == {'config_page': True, 'talkpage': True}
 
+  def test_end2end(self):
+    source1 = [(datetime.datetime(2020, 1, 1), '100')]
+    source2 = [(datetime.datetime(2020, 1, 1), '100')]
+    source3 = [(datetime.datetime(2020, 1, 1), '100')]
+    dow_jones.dow_sources = [lambda: source1, lambda: source2, lambda: source3]
+
+    main.Page = MockPage
+
+    wiki = MockWiki()
+    page = MockPage(wiki, 'category_page')
+    page.wikitext = '| 1 || 2 || 28'
+    wiki.category_pages = [page]
+    today = datetime.datetime(2020, 1, 1, 13, 30, tzinfo=datetime.timezone.utc)
+    main.main(wiki, today)
+
+    expected = '\n'.join([
+      '| 1 || 2 || 28',
+      '=== [https://edit.url/2020-01-01_1_2 2020-01-01 1 2] ===',
+      '[https://maps.google.com/?q=1.27537086088503215,2.857575622080932 Centicule 28]',
+    ])
+    assert page.wikitext == expected
+
 if __name__ == '__main__':
   test_class = Tests()
 
@@ -152,4 +226,3 @@ if __name__ == '__main__':
 
     print('===', test[0], 'passed')
   print('\nAll tests passed')
-
