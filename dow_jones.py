@@ -1,9 +1,9 @@
 import collections
 import re
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 
-verbose = True
+verbose = False
 
 FIND_TABLE       = re.compile('<table[^>]*>(.*?)</table>')
 FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
@@ -12,14 +12,16 @@ headers = {'User-Agent': 'Mozilla/5.0 (https://github.com/jbzdarkid/geohashing)'
 
 def dow_from_yahoo():
   r = requests.get('https://finance.yahoo.com/quote/%5EDJI/history', headers=headers)
-  r.raise_for_status()
+  if not r.ok:
+    print(r.text)
+    r.raise_for_status()
 
   table = FIND_TABLE.findall(r.text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
     cells = FIND_TABLE_CELLS.findall(row)
     if not cells:
       continue
-    
+
     # This pagescraper was last updated on 2024-05-18
     date = datetime.strptime(cells[0], '%b %d, %Y')
     yield (date, cells[1].replace(',', ''))
@@ -27,7 +29,10 @@ def dow_from_yahoo():
 
 def dow_from_investing():
   r = requests.get('https://www.investing.com/indices/us-30-historical-data', headers=headers)
-  r.raise_for_status()
+  if not r.ok:
+    print(r.text)
+    r.raise_for_status()
+
   table = FIND_TABLE.findall(r.text)[1] # 2nd table
   for row in FIND_TABLE_ROWS.findall(table):
     cells = FIND_TABLE_CELLS.findall(row)
@@ -42,7 +47,10 @@ def dow_from_investing():
 
 def dow_from_markets():
   r = requests.get('https://markets.ft.com/data/indices/tearsheet/historical?s=DJI:DJI', headers=headers)
-  r.raise_for_status()
+  if not r.ok:
+    print(r.text)
+    r.raise_for_status()
+
   table = FIND_TABLE.findall(r.text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
     cells = FIND_TABLE_CELLS.findall(row)
@@ -55,38 +63,31 @@ def dow_from_markets():
     yield (date, cells[1].replace(',', ''))
 
 
-dow_cache = {}
-def get_dow_jones(day):
-  if not dow_cache:
-    temp_cache = collections.defaultdict(list)
-    for date, dow in dow_from_yahoo():
+dow_sources = [dow_from_yahoo, dow_from_investing, dow_from_markets]
+def get_dow_jones_opens():
+  temp_cache = collections.defaultdict(list)
+  for dow_source in dow_sources:
+    for date, dow in dow_source():
       temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-    for date, dow in dow_from_investing():
-      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-    for date, dow in dow_from_markets():
-      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
-
-    print(temp_cache)
-
-    for key, value in temp_cache.items():
-      if len(value) < 3:
-        continue
-      source1, source2, source3 = value
-      if source1 == source2:
-        value = source1
-      elif source2 == source3:
-        value = source2
-      elif source3 == source1:
-        value = source3
-      else:
-        continue
-      dow_cache[key] = value
-
-  dow_jones_open = None
-  while not dow_jones_open:
-    dow_jones_open = dow_cache.get(day.strftime('%Y-%m-%d'), None)
-    day -= timedelta(hours=1)
 
   if verbose:
-    print(f'The DOW for {day} opened at {dow_jones_open}')
-  return dow_jones_open
+    print('Temp cache', temp_cache)
+
+  dow_opens = {}
+  for key, values in temp_cache.items():
+    if len(values) < 2: # We need at least 2 agreements (but ideally we have 3)
+      continue
+    if values[0] == values[1]:
+      dow_opens[key] = values[0]
+    elif len(values) > 2 and values[1] == values[2]:
+      dow_opens[key] = values[1]
+    elif len(values) > 2 and values[2] == values[0]:
+      dow_opens[key] = values[2]
+    else:
+      if verbose:
+        print(f'Not enough information to determine the DOW opening for {key}')
+
+  if verbose:
+    print('Dow opens', dow_opens)
+
+  return dow_opens
