@@ -11,33 +11,32 @@ import dow_jones
 
 verbose = False
 
-def get_geohashes(dow_opens, end_day = datetime.datetime.today()):
-  geohashes = {}
-
+def get_geohash(dow_opens, end_day, w30 = True):
   last_dow_open = None
   date_range = [end_day - datetime.timedelta(days=i) for i in range(10)][::-1]
   for day in date_range:
+    # The 30W rule states that coordinates east of Long -30 should be computed using the previous day's DOW opening.
+    if not w30 and day >= datetime.datetime(2008, 5, 27):
+      day -= datetime.timedelta(days = 1)
+      
     date = day.strftime('%Y-%m-%d')
     if dow_open := dow_opens.get(date):
       last_dow_open = dow_open
-    if not last_dow_open:
-      continue # No data found, initial date may be a weekend
 
-    if verbose:
-      print('Last dow open:', last_dow_open)
-    
-    hash = hashlib.md5(f'{date}-{last_dow_open}'.encode('utf-8')).hexdigest()
-    if verbose:
-      print(f'Raw hash for {day}: {hash}')
+  # Compute using the original unmodified day
+  date = end_day.strftime('%Y-%m-%d')
+  print(date, last_dow_open)
+  hash = hashlib.md5(f'{date}-{last_dow_open}'.encode('utf-8')).hexdigest()
+  if verbose:
+    print(f'Raw hash for {end_day}: {hash}')
 
-    latitude  = str(float.fromhex(f'0.{hash[:16]}'))[2:] # Convert hex to float then removing leading '0.'
-    longitude = str(float.fromhex(f'0.{hash[16:]}'))[2:] # Convert hex to float then removing leading '0.'
-    centicule = latitude[0] + longitude[0]
-    geohashes[date] = (latitude, longitude, centicule)
-    if verbose:
-      print(f'(lat, long, cent): {latitude}, {longitude}, {centicule}')
+  latitude  = str(float.fromhex(f'0.{hash[:16]}'))[2:] # Convert hex to float then removing leading '0.'
+  longitude = str(float.fromhex(f'0.{hash[16:]}'))[2:] # Convert hex to float then removing leading '0.'
+  centicule = latitude[0] + longitude[0]
+  if verbose:
+    print(f'For date {date}, (lat, long, cent) = ({latitude}, {longitude}, {centicule})')
 
-  return geohashes
+  return (latitude, longitude, centicule)
 
 DAY_OF_WEEK = 'monday, tuesday, wednesday, thursday, friday, saturday, sunday'.split(', ')
 def parse_config(contents):
@@ -67,10 +66,9 @@ def parse_config(contents):
 
     for day in target_days:
       config[day] = {}
-      for cent in cents:
-        config[day][cent] = {'lat': lat, 'long': long}
-        for method in notification_methods:
-          config[day][cent][method] = True
+      config[day][(lat, long)] = {'cents': cents}
+      for method in notification_methods:
+        config[day][(lat, long)][method] = True
   
   return config
 
@@ -124,7 +122,9 @@ def main(w):
       break
     time.sleep(60) # Sleep for 60 seconds
 
-  geohashes = get_geohashes(dow_opens) # Map of YYYY-mm-dd:(latitude, longitude, centicule).
+  # TODO: Inline.
+  geohashes_30e = get_geohashes(dow_opens, 'e') # Map of YYYY-mm-dd:(latitude, longitude, centicule).
+  geohashes_30w = get_geohashes(dow_opens, 'w') # There are two of these because of the 30W rule. Google it.
 
   for page in pages:
     if verbose:
@@ -136,11 +136,11 @@ def main(w):
     config = parse_config(page.get_wiki_text())
     for day in days:
       day_name = DAY_OF_WEEK[day.weekday()]
-      (latitude, longitude, centicule) = geohashes[day.strftime('%Y-%m-%d')]
-      if centicule in config[day_name]: # Centicule is tracked by config
-        data = config[day_name][centicule]
-        lat = data['lat']
-        long = data['long']
+      for (lat, long), data in config[day_name].items():
+        (latitude, longitude, centicule) = get_geohash(dow_opens, day, long >= -30)
+        if centicule not in data['cents']:
+          continue # Centicule is not tracked by the user, ignore it
+
         if verbose:
           print(f'Found geohash on {day} within centicules for {page.title}: {lat, long, cent}')
 

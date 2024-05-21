@@ -33,22 +33,48 @@ class Tests:
   #!# Tests #!#
   #############
   def test_hashes(self):
-    geohashes = main.get_geohashes(self.dow_opens, datetime.datetime(year=2024, month=5, day=7))
     # These values were independently confirmed with geohashing.info
-    lat, long, cent = geohashes['2024-04-30']
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 4, 30))
     assert lat == '9023250203492802'
     assert long == '5518558190767081'
     assert cent == '95'
 
-    lat, long, cent = geohashes['2024-05-01']
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 1))
     assert lat == '9725225494237593'
     assert long == '987217588117626'
     assert cent == '99'
 
-    lat, long, cent = geohashes['2024-05-04']
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 4))
     assert lat == '8657127823310143'
     assert long == '4690159903840444'
     assert cent == '84'
+
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 6))
+    assert lat == '07702675125845192'
+    assert long == '965342070246618'
+    assert cent == '09'
+
+  def test_hashes_30w(self):
+    # These values were independently confirmed with geohashing.info
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 4, 30), w30 = False)
+    assert lat == '1352540080910259'
+    assert long == '9037177752203457'
+    assert cent == '19'
+
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 1), w30 = False)
+    assert lat == '915065169318582'
+    assert long == '4317648130720158'
+    assert cent == '94'
+
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 4), w30 = False)
+    assert lat == '8657127823310143'
+    assert long == '4690159903840444'
+    assert cent == '84'
+
+    lat, long, cent = main.get_geohash(self.dow_opens, datetime.datetime(2024, 5, 6), w30 = False)
+    assert lat == '06277180306206916'
+    assert long == '5890366767633993'
+    assert cent == '05'
 
 if __name__ == '__main__':
   test_class = Tests()
