@@ -75,7 +75,7 @@ def parse_config(contents):
         if cent: # Only handle non-empty to skip padding
           for method in notification_methods:
             config[day][(lat, long)][cent][method] = True
-  
+
   return config
 
 def main(w, today):
@@ -143,7 +143,7 @@ def main(w, today):
         date = day.strftime('%Y-%m-%d')
         expedition = Page(w, f'{date} {lat} {long}')
         map_link = f'https://maps.google.com/?q={lat}.{latitude},{long}.{longitude}'
-  
+
         notifications = data[centicule]
         if notifications.get('config_page'):
           config_contents.append(f'\n=== [{expedition.get_edit_url()} {expedition.title}] ===')
