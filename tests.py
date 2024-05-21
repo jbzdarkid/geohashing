@@ -34,6 +34,9 @@ class MockWiki:
   def get_all_category_pages(self, *args, **kwargs):
     return self.category_pages
 
+  def login(self, user, pass):
+    return True
+
 class Tests:
   dow_opens = {
       '2024-05-07': '38858.94',
