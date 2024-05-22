@@ -25,16 +25,14 @@ def get_geohash(dow_opens, end_day, w30 = True):
       last_dow_open = dow_open
 
   # Compute using the original unmodified day
-  date = end_day.strftime('%Y-%m-%d')
-  hash = hashlib.md5(f'{date}-{last_dow_open}'.encode('utf-8')).hexdigest()
-  if verbose:
-    print(f'Raw hash for {end_day}: {hash}')
+  hash_string = end_day.strftime('%Y-%m-%d') + '-' + last_dow_open
+  hash = hashlib.md5(hash_string.encode('utf-8')).hexdigest()
 
   latitude  = str(float.fromhex(f'0.{hash[:16]}'))[2:] # Convert hex to float then removing leading '0.'
   longitude = str(float.fromhex(f'0.{hash[16:]}'))[2:] # Convert hex to float then removing leading '0.'
   centicule = latitude[0] + longitude[0]
   if verbose:
-    print(f'For date {date}, (lat, long, cent) = ({latitude}, {longitude}, {centicule})')
+    print(f'hash({hash_string}) = {hash} -> ({latitude}, {longitude}, {centicule})')
 
   return (latitude, longitude, centicule)
 
@@ -110,14 +108,15 @@ def main(w, today):
   # The Dow Jones Industrial Average opens with the New York Stock Exchange at 9:30 AM, Eastern Time.
   # The reporting for the value is usually available within two hours, so if we can't find an opening value by then,
   # assume it's a weekend or a holiday. See https://www.nyse.com/markets/hours-calendars for more precise holiday info.
+  date = today.strftime('%Y-%m-%d')
   for _ in range(120):
     dow_opens = dow_jones.get_dow_jones_opens() # This samples 3 websites, and only reports data if >= 2 of them agree.
-    if today.strftime('%Y-%m-%d') in dow_opens:
+    if date in dow_opens:
       if verbose:
-        print('DJI opening data found at', today)
+        print(f'Dow jones open found for {date}: {dow_opens[date]}')
       break
     if verbose:
-      print(f'Did not find dow jones information for today ({today}): {dow_opens}, sleeping')
+      print(f'Did not find dow jones open for {date}: {dow_opens}, sleeping')
     time.sleep(60) # Sleep for 60 seconds
 
   # Now that the stock exchange has opened (and we have information about the dow jones), we can process geohashes.
@@ -132,7 +131,7 @@ def main(w, today):
     for day in days:
       day_name = DAY_OF_WEEK[day.weekday()]
       for (lat, long), data in config[day_name].items():
-        (latitude, longitude, centicule) = get_geohash(dow_opens, day, long >= -30)
+        (latitude, longitude, centicule) = get_geohash(dow_opens, day, long < -30)
         if centicule not in data:
           print(f'For day {day}, centicule {centicule} is not within the configured centicules:', ', '.join(data.keys()))
           continue

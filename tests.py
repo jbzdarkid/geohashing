@@ -181,10 +181,8 @@ class Tests:
     assert config['tuesday'][(1, 2)]['09'] == {'config_page': True, 'talkpage': True}
 
   def test_end2end(self):
-    source1 = [(datetime.datetime(2020, 1, 1), '100')]
-    source2 = [(datetime.datetime(2020, 1, 1), '100')]
-    source3 = [(datetime.datetime(2020, 1, 1), '100')]
-    dow_jones.dow_sources = [lambda: source1, lambda: source2, lambda: source3]
+    dow_opens = [(datetime.datetime(2019, 12, 31), '28414.64'), (datetime.datetime(2020, 1, 2), '28638.97')]
+    dow_jones.dow_sources = [lambda: dow_opens] * 3
 
     os.environ['WIKI_USERNAME'] = 'mock_username'
     os.environ['WIKI_PASSWORD'] = 'mock_password'
@@ -193,15 +191,38 @@ class Tests:
 
     wiki = MockWiki()
     page = MockPage(wiki, 'category_page')
-    page.wikitext = '| 1 || 2 || 28'
+    page.wikitext = '| 0 || -100 || 12'
     wiki.category_pages = [page]
-    today = datetime.datetime(2020, 1, 1, 13, 30, tzinfo=datetime.timezone.utc)
+    today = datetime.datetime(2020, 1, 2, 13, 30, tzinfo=datetime.timezone.utc) # This test is running when the NYSE opened on Jan 2nd.
     main.main(wiki, today)
 
     expected = '\n'.join([
-      '| 1 || 2 || 28',
-      '=== [https://edit.url/2020-01-01_1_2 2020-01-01 1 2] ===',
-      '[https://maps.google.com/?q=1.27537086088503215,2.857575622080932 Centicule 28]',
+      '| 0 || -100 || 12',
+      '=== [https://edit.url/2020-01-02_0_-100 2020-01-02 0 -100] ===',
+      '[https://maps.google.com/?q=0.15412936177081613,-100.21669788487512565 Centicule 12]',
+    ])
+    assert page.wikitext == expected
+
+  def test_end2end_30w(self):
+    dow_opens = [(datetime.datetime(2019, 12, 31), '28414.64'), (datetime.datetime(2020, 1, 2), '28638.97')]
+    dow_jones.dow_sources = [lambda: dow_opens] * 3
+
+    os.environ['WIKI_USERNAME'] = 'mock_username'
+    os.environ['WIKI_PASSWORD'] = 'mock_password'
+
+    main.Page = MockPage
+
+    wiki = MockWiki()
+    page = MockPage(wiki, 'category_page')
+    page.wikitext = '| 0 || 100 || 72'
+    wiki.category_pages = [page]
+    today = datetime.datetime(2020, 1, 2, 13, 30, tzinfo=datetime.timezone.utc) # This test is running when the NYSE opened on Jan 2nd.
+    main.main(wiki, today)
+
+    expected = '\n'.join([
+      '| 0 || 100 || 72',
+      '=== [https://edit.url/2020-01-02_0_100 2020-01-02 0 100] ===',
+      '[https://maps.google.com/?q=0.7960144915143538,100.21935745486982688 Centicule 72]',
     ])
     assert page.wikitext == expected
 
