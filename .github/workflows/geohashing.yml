@@ -1,27 +1,26 @@
 name: Geohashing
 on:
   schedule:
-    - cron: '30 13 * * *' # Run the script daily, when the NYSE opens (9:30 EDT). This will be 1h early under standard time, but whatever.
+    # Run the script when the NYSE opens (9:30 Eastern Time, Monday-Friday), as we rely on the opening value of the Dow Jones.
+    # For November - March, we are in EST (UTC-5), so run at 14:30 UTC (9:30 AM EST)
+    # For April - October, we are in EDT (UTC-4) so run at 13:30 UTC (9:30 AM EDT)
+    # Inspired by https://github.com/orgs/community/discussions/13454#discussioncomment-9418374
+    - cron: '30  14  *  11,12,1,2,3  1-5'
+    - cron: '30  13  *  4-10         1-5'
   workflow_dispatch:
-
-concurrency: 
-  group: ${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   run:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
     - uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
     - run: pip install -r requirements.txt
     - run: python -u main.py
-      timeout-minutes: 10
+      timeout-minutes: 300
       env:
         WIKI_USERNAME: ${{ secrets.WIKI_USERNAME }}
         WIKI_PASSWORD: ${{ secrets.WIKI_PASSWORD }}
