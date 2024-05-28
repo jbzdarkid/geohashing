@@ -13,8 +13,8 @@ headers = {'User-Agent': 'Mozilla/5.0 (https://github.com/jbzdarkid/geohashing)'
 def dow_from_yahoo():
   r = requests.get('https://finance.yahoo.com/quote/%5EDJI/history', headers=headers)
   if not r.ok:
-    print(r.text)
-    r.raise_for_status()
+    print(r.url, r.status_code)
+    return
 
   table = FIND_TABLE.findall(r.text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
@@ -30,8 +30,8 @@ def dow_from_yahoo():
 def dow_from_investing():
   r = requests.get('https://www.investing.com/indices/us-30-historical-data', headers=headers)
   if not r.ok:
-    print(r.text)
-    r.raise_for_status()
+    print(r.url, r.status_code)
+    return
 
   table = FIND_TABLE.findall(r.text)[1] # 2nd table
   for row in FIND_TABLE_ROWS.findall(table):
@@ -48,8 +48,8 @@ def dow_from_investing():
 def dow_from_markets():
   r = requests.get('https://markets.ft.com/data/indices/tearsheet/historical?s=DJI:DJI', headers=headers)
   if not r.ok:
-    print(r.text)
-    r.raise_for_status()
+    print(r.url, r.status_code)
+    return
 
   table = FIND_TABLE.findall(r.text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
