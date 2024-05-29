@@ -78,8 +78,10 @@ def dow_from_seekingalpha():
   if not text:
     return
 
-  print(text)
-  start_idx = text.index('real_time_quotes')
+  start_idx = text.find('real_time_quotes')
+  if start_idx == -1:
+    print('Could not find quote data in text\n', text)
+    return
   end_idx = text.index(']', start_idx)
   data = json.loads(text[start_idx + 19:end_idx])
 
