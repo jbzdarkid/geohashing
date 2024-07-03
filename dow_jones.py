@@ -12,21 +12,12 @@ FIND_TABLE_CELLS = re.compile('<td[^>]*>(.*?)</td>')
 
 def get_url(url):
   headers = {'User-Agent': 'Mozilla/5.0 (https://github.com/jbzdarkid/geohashing)'} # Yahoo 404s requests without a UA
-  try:
-    r = requests.get(url, headers=headers)
-    if not r.ok:
-      print(r.url, r.status_code)
-      return None
-    return r.text
-  except:
-    import traceback
-    traceback.print_exc()
-    return None
+  r = requests.get(url, headers=headers)
+  r.raise_for_status()
+  return r.text
 
 def dow_from_yahoo():
   text = get_url('https://finance.yahoo.com/quote/%5EDJI/history')
-  if not text:
-    return
 
   table = FIND_TABLE.findall(text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
@@ -41,8 +32,6 @@ def dow_from_yahoo():
 
 def dow_from_investing():
   text = get_url('https://www.investing.com/indices/us-30-historical-data')
-  if not text:
-    return
 
   table = FIND_TABLE.findall(text)[1] # 2nd table
   for row in FIND_TABLE_ROWS.findall(table):
@@ -58,8 +47,6 @@ def dow_from_investing():
 
 def dow_from_financialtimes():
   text = get_url('https://markets.ft.com/data/indices/tearsheet/historical?s=DJI:DJI')
-  if not text:
-    return
 
   table = FIND_TABLE.findall(text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
@@ -74,14 +61,9 @@ def dow_from_financialtimes():
 
 
 def dow_from_seekingalpha():
-  text = requests.get('https://seekingalpha.com/symbol/DJI').text
-  if not text:
-    return
+  text = get_url('https://seekingalpha.com/symbol/DJI')
 
-  start_idx = text.find('real_time_quotes')
-  if start_idx == -1:
-    print('Could not find quote data in text\n', text)
-    return
+  start_idx = text.index('real_time_quotes')
   end_idx = text.index(']', start_idx)
   data = json.loads(text[start_idx + 19:end_idx])
 
@@ -93,8 +75,13 @@ dow_sources = [dow_from_yahoo, dow_from_financialtimes, dow_from_seekingalpha]
 def get_dow_jones_opens():
   temp_cache = collections.defaultdict(list)
   for dow_source in dow_sources:
-    for date, dow in dow_source():
-      temp_cache[date.strftime('%Y-%m-%d')].append(dow)
+    try:
+      for date, dow in dow_source():
+        temp_cache[date.strftime('%Y-%m-%d')].append(dow)
+    except:
+      import traceback
+      traceback.print_exc()
+      continue
 
   if verbose:
     print('Temp cache', temp_cache)
