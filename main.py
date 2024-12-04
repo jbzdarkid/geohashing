@@ -24,6 +24,9 @@ def get_geohash(dow_opens, end_day, w30 = True):
     if dow_open := dow_opens.get(date):
       last_dow_open = dow_open
 
+  if not last_dow_open:
+    print('DOW open could not be found, cannot compute geohash')
+    exit(1)
   # Compute using the original unmodified day
   hash_string = end_day.strftime('%Y-%m-%d') + '-' + last_dow_open
   hash = hashlib.md5(hash_string.encode('utf-8')).hexdigest()
