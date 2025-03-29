@@ -92,6 +92,15 @@ def main(w, today):
   else:
     pages = w.get_all_category_pages('Category:Tracked by DarkBOT', namespaces=['User'])
 
+  if today.day == 1:
+    # On the first of the month, ping github to keep the workflow enabled
+    headers = {
+      'Accept': 'application/vnd.github.v3+json',
+      'Authorization': 'Bearer ' + environ['GITHUB_TOKEN'],
+    }
+    r = requests.put('https://github.com/jbzdarkid/geohashing/actions/workflows/31355940/enable', headers)
+    r.raise_for_status()
+
   if today.weekday() in [0, 1, 2, 3]:
     days = [today]
     if verbose:
