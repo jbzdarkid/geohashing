@@ -9,8 +9,6 @@ on:
     - cron: '30  13  *  4-10         1-5'
   workflow_dispatch:
 
-permissions: write-all
-
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -28,4 +26,4 @@ jobs:
       env:
         WIKI_USERNAME: ${{ secrets.WIKI_USERNAME }}
         WIKI_PASSWORD: ${{ secrets.WIKI_PASSWORD }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
