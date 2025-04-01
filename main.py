@@ -96,10 +96,11 @@ def main(w, today):
     # On the first of the month, ping github to keep the workflow enabled
     headers = {
       'Accept': 'application/vnd.github.v3+json',
-      'Authorization': 'Bearer ' + os.environ.get('GITHUB_TOKEN', ''),
+      'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN'],
     }
     import requests
     r = requests.put('https://github.com/jbzdarkid/geohashing/actions/workflows/31355940/enable', headers)
+    print(r.status_code, r.text)
     r.raise_for_status()
 
   if today.weekday() in [0, 1, 2, 3]:
