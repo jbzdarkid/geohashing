@@ -96,7 +96,7 @@ def main(w, today):
     # On the first of the month, ping github to keep the workflow enabled
     headers = {
       'Accept': 'application/vnd.github.v3+json',
-      'Authorization': 'Bearer ' + environ['GITHUB_TOKEN'],
+      'Authorization': 'Bearer ' + os.environ.get('GITHUB_TOKEN', ''),
     }
     r = requests.put('https://github.com/jbzdarkid/geohashing/actions/workflows/31355940/enable', headers)
     r.raise_for_status()
