@@ -99,7 +99,9 @@ def main(w, today):
       'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN'],
     }
     import requests
-    r = requests.put('https://github.com/jbzdarkid/geohashing/actions/workflows/31355940/enable', headers)
+    s = requests.Session()
+    s.get('https://github.com/login') # Just to populate cookies
+    r = s.put('https://github.com/jbzdarkid/geohashing/actions/workflows/31355940/enable', headers)
     print(r.status_code, r.text)
     r.raise_for_status()
 
