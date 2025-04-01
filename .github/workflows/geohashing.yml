@@ -9,8 +9,7 @@ on:
     - cron: '30  13  *  4-10         1-5'
   workflow_dispatch:
 
-permissions:
-  actions: write
+permissions: write-all
 
 jobs:
   run:
