@@ -98,6 +98,7 @@ def main(w, today):
       'Accept': 'application/vnd.github.v3+json',
       'Authorization': 'Bearer ' + os.environ.get('GITHUB_TOKEN', ''),
     }
+    import requests
     r = requests.put('https://github.com/jbzdarkid/geohashing/actions/workflows/31355940/enable', headers)
     r.raise_for_status()
 
