@@ -26,7 +26,6 @@ jobs:
       env:
         WIKI_USERNAME: ${{ secrets.WIKI_USERNAME }}
         WIKI_PASSWORD: ${{ secrets.WIKI_PASSWORD }}
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
   workflow-keepalive:
     runs-on: ubuntu-latest
