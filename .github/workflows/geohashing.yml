@@ -33,5 +33,5 @@ jobs:
       actions: write
     steps:
     - run: echo "::set-env name=DAY_OF_MONTH::$( date +%d )"
-    - uses: liskin/gh-workflow-keepalive@v1
+    - uses: liskin/gh-workflow-keepalive@f72ff1a1336129f29bf0166c0fd0ca6cf1bcb38c
       if: env.DAY_OF_MONTH == '1'
