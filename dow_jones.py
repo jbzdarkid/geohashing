@@ -11,7 +11,8 @@ FIND_TABLE_ROWS  = re.compile('<tr[^>]*>(.*?)</tr>')
 FIND_TABLE_CELLS = re.compile('<td[^>]*>(.*?)</td>')
 
 def get_url(url):
-  headers = {'User-Agent': 'Mozilla/5.0 (https://github.com/jbzdarkid/geohashing)'} # Yahoo 404s requests without a UA
+  # Semi-accurately spoofing the Firefox UA
+  headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0 GithubJbzdarkidGeohashing/1.0'}
   r = requests.get(url, headers=headers)
   r.raise_for_status()
   return r.text
