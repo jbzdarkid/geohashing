@@ -14,12 +14,14 @@ def get_url(url):
   # Semi-accurately spoofing the Firefox UA
   headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0 GithubJbzdarkidGeohashing/1.0'}
   r = requests.get(url, headers=headers)
+  if not r.ok:
+    print(r.status_code, r.text)
   r.raise_for_status()
   return r.text
 
 # 2025-06-19 still working
 def dow_from_yahoo():
-  text = get_url('https://finance.yahoo.com/quote/%5EDJI/history')
+  text = get_url('https://finance.yahoo.com/quote/^DJI/history')
 
   table = FIND_TABLE.findall(text)[0] # 1st table
   for row in FIND_TABLE_ROWS.findall(table):
@@ -41,6 +43,7 @@ def dow_from_investing():
     if not cells:
       continue
 
+    print(cells[0], cells[2])
     raw_date = re.search(r'\d{2}/\d{2}/20\d{2}', cells[0])
     date = datetime.strptime(raw_date[0], '%m/%d/%Y')
     yield (date, cells[2].replace(',', ''))
