@@ -84,9 +84,9 @@ def dow_from_businessinsider():
   end_idx = text.index('\n', start_idx)
 
   data = json.loads(text[start_idx + 18:end_idx])
-  row = data['model'][0]
-  date = datetime.strptime(row['Date'], '%m/%d/%y')
-  yield (date, str(row['Open']))
+  for row in data['model']:
+    date = datetime.strptime(row['Date'], '%m/%d/%y')
+    yield (date, str(row['Open']))
 
 
 # Not working 2025-06-19 (requires javascript)
