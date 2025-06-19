@@ -45,6 +45,7 @@ def dow_from_investing():
 
     start_idx = cells[0].index('dateTime="')
     end_idx = cells[0].index('"', start_idx)
+    print(cells[0], start_idx, end_idx, cells[0][start_idx+10:end_idx])
     date = datetime.strptime(cells[0][start_idx+10:end_idx], '%b %d, %Y')
     yield (date, cells[2].replace(',', ''))
 
