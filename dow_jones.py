@@ -19,7 +19,7 @@ def get_url(url):
   r.raise_for_status()
   return r.text
 
-# 2025-06-19 still working
+# 2025-06-19 gives 404s a lot, might not be working
 def dow_from_yahoo():
   text = get_url('https://finance.yahoo.com/quote/^DJI/history')
 
@@ -33,7 +33,7 @@ def dow_from_yahoo():
     yield (date, cells[1].replace(',', ''))
 
 
-# 2025-06-19 testing
+# Working as of 2025-06-19
 def dow_from_investing():
   text = get_url('https://www.investing.com/indices/us-30-historical-data')
 
@@ -43,13 +43,13 @@ def dow_from_investing():
     if not cells:
       continue
 
-    print(cells[0], cells[2])
-    raw_date = re.search(r'\d{2}/\d{2}/20\d{2}', cells[0])
-    date = datetime.strptime(raw_date[0], '%m/%d/%Y')
+    start_idx = cells[0].index('dateTime="')
+    end_idx = cells[0].index('"', start_idx)
+    date = datetime.strptime(cells[0][start_idx+10:end_idx], '%b %d, %Y')
     yield (date, cells[2].replace(',', ''))
 
 
-# 2025-06-19 testing
+# Working as of 2025-06-19
 def dow_from_financialtimes():
   text = get_url('https://markets.ft.com/data/indices/tearsheet/historical?s=DJI:DJI')
 
@@ -64,7 +64,7 @@ def dow_from_financialtimes():
     yield (date, cells[1].replace(',', ''))
 
 
-# 2025-06-19 anti-bot technology
+# Not working 2025-06-19 (anti-bot technology)
 def dow_from_seekingalpha():
   text = get_url('https://seekingalpha.com/symbol/DJI')
 
@@ -76,7 +76,7 @@ def dow_from_seekingalpha():
   yield (date, str(data['open']))
 
 
-# 2025-06-19 just created, testing
+# Working 2025-06-19
 def dow_from_businessinsider():
   text = get_url('https://markets.businessinsider.com/index/dow_jones?op=1')
 
@@ -89,7 +89,7 @@ def dow_from_businessinsider():
   yield (date, str(row['Open']))
 
 
-# 2025-06-19 just created, testing
+# Not working 2025-06-19 (requires javascript)
 def dow_from_marketwatch():
   text = get_url('https://www.marketwatch.com/investing/index/djia')
 
@@ -104,7 +104,7 @@ def dow_from_marketwatch():
   yield (date, open)
 
 
-dow_sources = [dow_from_yahoo, dow_from_investing, dow_from_financialtimes, dow_from_businessinsider, dow_from_marketwatch]
+dow_sources = [dow_from_investing, dow_from_financialtimes, dow_from_businessinsider]
 def get_dow_jones_opens():
   temp_cache = collections.defaultdict(list)
   for dow_source in dow_sources:
