@@ -16,6 +16,7 @@ def get_url(url):
   r.raise_for_status()
   return r.text
 
+# 2025-06-19 still working
 def dow_from_yahoo():
   text = get_url('https://finance.yahoo.com/quote/%5EDJI/history')
 
@@ -25,11 +26,11 @@ def dow_from_yahoo():
     if not cells:
       continue
 
-    # This pagescraper was last updated on 2024-05-18
     date = datetime.strptime(cells[0], '%b %d, %Y')
     yield (date, cells[1].replace(',', ''))
 
 
+# 2025-06-19 testing
 def dow_from_investing():
   text = get_url('https://www.investing.com/indices/us-30-historical-data')
 
@@ -39,12 +40,12 @@ def dow_from_investing():
     if not cells:
       continue
 
-    # This pagescraper was last updated on 2024-05-18
     raw_date = re.search(r'\d{2}/\d{2}/20\d{2}', cells[0])
     date = datetime.strptime(raw_date[0], '%m/%d/%Y')
     yield (date, cells[2].replace(',', ''))
 
 
+# 2025-06-19 testing
 def dow_from_financialtimes():
   text = get_url('https://markets.ft.com/data/indices/tearsheet/historical?s=DJI:DJI')
 
@@ -54,12 +55,12 @@ def dow_from_financialtimes():
     if not cells:
       continue
 
-    # This pagescraper was last updated on 2024-05-18
     raw_date = re.search('<span[^>]*>(.*?)</span>', cells[0])
     date = datetime.strptime(raw_date[1], '%A, %B %d, %Y')
     yield (date, cells[1].replace(',', ''))
 
 
+# 2025-06-19 anti-bot technology
 def dow_from_seekingalpha():
   text = get_url('https://seekingalpha.com/symbol/DJI')
 
@@ -71,7 +72,35 @@ def dow_from_seekingalpha():
   yield (date, str(data['open']))
 
 
-dow_sources = [dow_from_yahoo, dow_from_financialtimes, dow_from_seekingalpha]
+# 2025-06-19 just created, testing
+def dow_from_businessinsider():
+  text = get_url('https://markets.businessinsider.com/index/dow_jones?op=1')
+
+  start_idx = text.index('historicalPrices: {')
+  end_idx = text.index('\n', start_idx)
+
+  data = json.loads(text[start_idx + 18:end_idx])
+  row = data['model'][0]
+  date = datetime.strptime(row['Date'], '%m/%d/%y')
+  yield (date, str(row['Open']))
+
+
+# 2025-06-19 just created, testing
+def dow_from_marketwatch():
+  text = get_url('https://www.marketwatch.com/investing/index/djia')
+
+  start_idx = text.index('<meta name="quoteTime" content="')
+  end_idx = text.index('"', start_idx)
+  date = datetime.strptime(text[start_index+32:end_idx-9], '%b %d, %Y')
+
+  start_idx = text.index('day-open="')
+  end_idx = text.index('"', start_idx)
+  open = text[start_idx+10:end_idx]
+
+  yield (date, open)
+
+
+dow_sources = [dow_from_yahoo, dow_from_investing, dow_from_financialtimes, dow_from_businessinsider, dow_from_marketwatch]
 def get_dow_jones_opens():
   temp_cache = collections.defaultdict(list)
   for dow_source in dow_sources:
